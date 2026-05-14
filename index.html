@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FicheArrêt"/>
+<meta name="theme-color" content="#0f0f0f"/>
+<title>FicheArrêt</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;1,500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0f0f0f;
+  --bg2: #1a1a1a;
+  --bg3: #242424;
+  --border: rgba(255,255,255,0.08);
+  --border2: rgba(255,255,255,0.14);
+  --text: #f0ece4;
+  --text2: #8a8680;
+  --text3: #5a5652;
+  --gold: #c9a84c;
+  --gold2: #e8c96a;
+  --red-bg: rgba(192,57,43,0.12);
+  --green-bg: rgba(39,174,96,0.12);
+  --radius: 14px;
+  --radius-sm: 8px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100dvh; overscroll-behavior: none; }
+
+.app { max-width: 480px; margin: 0 auto; padding: calc(var(--safe-top) + 16px) 16px calc(var(--safe-bottom) + 100px); }
+
+/* Header */
+.header { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 20px; }
+.header-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 500; }
+.header-title span { color: var(--gold); }
+.header-btn { width: 36px; height: 36px; border-radius: 50%; background: var(--bg2); border: 1px solid var(--border); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; }
+
+/* Search */
+.search-wrap { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 12px; transition: border-color .2s; }
+.search-wrap:focus-within { border-color: var(--gold); }
+.search-label { font-size: 11px; font-weight: 500; color: var(--gold); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+.search-row { display: flex; gap: 10px; align-items: center; }
+.search-input { flex: 1; background: none; border: none; outline: none; font-family: 'DM Sans', sans-serif; font-size: 17px; color: var(--text); caret-color: var(--gold); }
+.search-input::placeholder { color: var(--text3); }
+.search-btn { height: 38px; padding: 0 18px; background: var(--gold); color: #0f0f0f; border: none; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 6px; transition: opacity .2s; }
+.search-btn:active { opacity: 0.8; }
+.search-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Pills */
+.pills { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 20px; }
+.pill-label { font-size: 12px; color: var(--text3); align-self: center; }
+.pill { font-size: 12px; padding: 5px 12px; border: 1px solid var(--border2); border-radius: 100px; color: var(--text2); cursor: pointer; background: none; font-family: 'DM Sans', sans-serif; transition: all .15s; }
+.pill:active { background: var(--bg2); color: var(--text); border-color: var(--gold); }
+
+/* Status */
+.status { display: none; align-items: center; gap: 10px; padding: 12px 14px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: 16px; line-height: 1.5; }
+.status.show { display: flex; }
+.status.loading { background: rgba(201,168,76,0.1); color: var(--gold); border: 1px solid rgba(201,168,76,0.2); }
+.status.error { background: var(--red-bg); color: #e74c3c; border: 1px solid rgba(192,57,43,0.2); }
+.status.ok { background: var(--green-bg); color: #2ecc71; border: 1px solid rgba(39,174,96,0.2); }
+.spin { width: 14px; height: 14px; border: 2px solid currentColor; border-top-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Fiche */
+.fiche-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; animation: fadeUp .35s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+.fiche-head { padding: 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.fiche-head h2 { font-family: 'Playfair Display', serif; font-size: 16px; font-weight: 500; margin-bottom: 4px; }
+.fiche-head p { font-size: 12px; color: var(--text2); line-height: 1.5; }
+.fiche-head-right { display: flex; gap: 8px; flex-shrink: 0; }
+
+.badge { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 100px; margin-top: 6px; }
+.badge.cassation { background: var(--red-bg); color: #e74c3c; }
+.badge.rejet { background: var(--green-bg); color: #2ecc71; }
+
+.source-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 8px; border-radius: 100px; border: 1px solid var(--border); color: var(--text3); margin-left: 6px; vertical-align: middle; }
+
+.icon-btn { width: 34px; height: 34px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius-sm); color: var(--text2); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 15px; }
+.icon-btn:active { color: var(--text); }
+
+/* Sections */
+.section { border-bottom: 1px solid var(--border); overflow: hidden; }
+.section:last-child { border-bottom: none; }
+.sec-header { display: flex; align-items: center; padding: 12px 16px; cursor: pointer; gap: 10px; user-select: none; }
+.sec-header:active { background: var(--bg3); }
+.sec-icon { width: 28px; height: 28px; border-radius: 6px; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+.sec-label { flex: 1; font-size: 12px; font-weight: 500; color: var(--text2); text-transform: uppercase; letter-spacing: 0.6px; }
+.sec-chevron { font-size: 11px; color: var(--text3); transition: transform .2s; }
+.section.open .sec-chevron { transform: rotate(180deg); }
+.sec-body { display: none; padding: 0 16px 14px; }
+.section.open .sec-body { display: block; }
+.sec-text { font-size: 14px; line-height: 1.75; color: var(--text); }
+.sec-text.question { font-family: 'Playfair Display', serif; font-style: italic; font-size: 15px; color: var(--gold2); padding: 12px 14px; background: rgba(201,168,76,0.06); border-left: 2px solid var(--gold); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+.edit-row { display: flex; justify-content: flex-end; margin-bottom: 8px; }
+.edit-btn-small { font-size: 12px; color: var(--gold); background: none; border: 1px solid rgba(201,168,76,0.25); cursor: pointer; font-family: 'DM Sans', sans-serif; display: flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; }
+.edit-btn-small:active { background: rgba(201,168,76,0.1); }
+.edit-area { width: 100%; background: var(--bg3); border: 1px solid var(--border2); border-radius: var(--radius-sm); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; line-height: 1.65; padding: 10px 12px; resize: vertical; min-height: 80px; outline: none; display: none; margin-top: 8px; }
+.edit-area:focus { border-color: var(--gold); }
+.save-row { display: none; gap: 8px; margin-top: 8px; }
+.save-btn { height: 30px; padding: 0 14px; border-radius: 6px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; border: none; background: var(--gold); color: #0f0f0f; font-weight: 500; }
+.cancel-btn { height: 30px; padding: 0 14px; border-radius: 6px; font-size: 12px; font-family: 'DM Sans', sans-serif; cursor: pointer; background: var(--bg3); color: var(--text2); border: 1px solid var(--border); }
+
+/* Validation */
+.val-bar { padding: 14px 16px; background: var(--bg3); border-top: 1px solid var(--border); }
+.val-label { font-size: 12px; color: var(--text2); margin-bottom: 10px; }
+.val-btns { display: flex; gap: 8px; }
+.val-btn { flex: 1; height: 40px; border-radius: var(--radius-sm); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; border: 1px solid var(--border); background: var(--bg2); color: var(--text2); display: flex; align-items: center; justify-content: center; gap: 6px; transition: all .2s; }
+.val-btn:active { transform: scale(0.97); }
+.val-btn.good.active { background: var(--green-bg); color: #2ecc71; border-color: rgba(39,174,96,0.3); }
+.val-btn.bad.active { background: rgba(231,76,60,0.1); color: #e74c3c; border-color: rgba(192,57,43,0.3); }
+.val-success { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #2ecc71; }
+
+/* Bottom nav */
+.bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; padding: 10px 24px calc(var(--safe-bottom) + 10px); background: rgba(15,15,15,0.92); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--border); display: flex; justify-content: space-around; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; padding: 6px 16px; border-radius: 10px; background: none; border: none; color: var(--text3); font-family: 'DM Sans', sans-serif; }
+.nav-item.active { color: var(--gold); }
+.nav-item:active { background: var(--bg2); }
+.nav-icon { font-size: 20px; }
+.nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; }
+
+/* Panels */
+.panel { display: none; }
+.panel.active { display: block; }
+.page-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 500; margin-bottom: 16px; }
+
+/* Historique */
+.hist-empty { text-align: center; padding: 60px 20px; color: var(--text3); }
+.hist-empty-icon { font-size: 40px; margin-bottom: 12px; }
+.hist-item { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; margin-bottom: 10px; cursor: pointer; transition: border-color .2s; }
+.hist-item:active { border-color: var(--gold); }
+.hist-item-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.hist-pourvoi { font-family: 'Playfair Display', serif; font-size: 15px; }
+.hist-date { font-size: 11px; color: var(--text3); }
+.hist-preview { font-size: 13px; color: var(--text2); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* Réglages */
+.settings-section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 14px; }
+.settings-title { font-size: 11px; font-weight: 500; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; padding: 14px 16px 8px; }
+.settings-row { display: flex; align-items: center; padding: 12px 16px; border-top: 1px solid var(--border); gap: 12px; }
+.settings-row:first-of-type { border-top: none; }
+.settings-icon { font-size: 18px; width: 28px; text-align: center; }
+.settings-info { flex: 1; }
+.settings-info-label { font-size: 14px; color: var(--text); }
+.settings-info-sub { font-size: 12px; color: var(--text2); margin-top: 1px; }
+.settings-value { font-size: 13px; color: var(--gold); }
+
+.install-banner { background: linear-gradient(135deg, rgba(201,168,76,0.12), rgba(201,168,76,0.04)); border: 1px solid rgba(201,168,76,0.25); border-radius: var(--radius); padding: 16px; margin-bottom: 16px; display: none; }
+.install-banner.show { display: block; }
+.install-title { font-family: 'Playfair Display', serif; font-size: 15px; color: var(--gold); margin-bottom: 6px; }
+.install-text { font-size: 13px; color: var(--text2); line-height: 1.6; }
+.install-step { font-size: 13px; color: var(--text); padding: 5px 0; display: flex; gap: 8px; align-items: flex-start; }
+.install-step-num { width: 18px; height: 18px; background: var(--gold); color: #0f0f0f; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 500; flex-shrink: 0; margin-top: 1px; }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <div class="header">
+    <div class="header-title">Fiche<span>Arrêt</span></div>
+    <button class="header-btn" onclick="shareApp()">⬆️</button>
+  </div>
+
+  <!-- Panel Recherche -->
+  <div id="panel-search" class="panel active">
+    <div class="search-wrap">
+      <div class="search-label">Numéro de pourvoi</div>
+      <div class="search-row">
+        <input id="inp" class="search-input" type="text" placeholder="Ex : 19-11.132" autocomplete="off" autocorrect="off" spellcheck="false"/>
+        <button id="goBtn" class="search-btn" onclick="generate()">⚡ Générer</button>
+      </div>
+    </div>
+    <div class="pills">
+      <span class="pill-label">Exemples :</span>
+      <button class="pill" onclick="pick('19-11.132')">19-11.132</button>
+      <button class="pill" onclick="pick('15-27.009')">15-27.009</button>
+      <button class="pill" onclick="pick('21-11.212')">21-11.212</button>
+      <button class="pill" onclick="pick('22-18.849')">22-18.849</button>
+    </div>
+    <div id="status" class="status"></div>
+    <div id="fiche-area"></div>
+  </div>
+
+  <!-- Panel Historique -->
+  <div id="panel-history" class="panel">
+    <div class="page-title">Historique</div>
+    <div id="hist-list"></div>
+  </div>
+
+  <!-- Panel Réglages -->
+  <div id="panel-settings" class="panel">
+    <div class="page-title">Réglages</div>
+
+    <div id="install-banner" class="install-banner">
+      <div class="install-title">📲 Installer sur iPhone</div>
+      <div class="install-text">Ajoutez FicheArrêt sur votre écran d'accueil :</div>
+      <div style="margin-top:10px">
+        <div class="install-step"><span class="install-step-num">1</span><span>Appuyez sur <strong>Partager ↑</strong> en bas de Safari</span></div>
+        <div class="install-step"><span class="install-step-num">2</span><span>Choisissez <strong>« Sur l'écran d'accueil »</strong></span></div>
+        <div class="install-step"><span class="install-step-num">3</span><span>Appuyez sur <strong>Ajouter</strong></span></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">Apprentissage</div>
+      <div class="settings-row">
+        <span class="settings-icon">🧠</span>
+        <div class="settings-info">
+          <div class="settings-info-label">Fiches validées</div>
+          <div class="settings-info-sub">Injectées dans les prochaines générations</div>
+        </div>
+        <span class="settings-value" id="examples-count">0</span>
+      </div>
+      <div class="settings-row" style="cursor:pointer" onclick="clearExamples()">
+        <span class="settings-icon">🗑️</span>
+        <div class="settings-info"><div class="settings-info-label" style="color:#e74c3c">Effacer les exemples</div></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">Données</div>
+      <div class="settings-row">
+        <span class="settings-icon">📋</span>
+        <div class="settings-info"><div class="settings-info-label">Fiches dans l'historique</div></div>
+        <span class="settings-value" id="history-count">0</span>
+      </div>
+      <div class="settings-row" style="cursor:pointer" onclick="clearHistory()">
+        <span class="settings-icon">🗑️</span>
+        <div class="settings-info"><div class="settings-info-label" style="color:#e74c3c">Effacer l'historique</div></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-title">À propos</div>
+      <div class="settings-row">
+        <span class="settings-icon">⚖️</span>
+        <div class="settings-info">
+          <div class="settings-info-label">FicheArrêt</div>
+          <div class="settings-info-sub">Cour de cassation · Powered by Claude</div>
+        </div>
+        <span class="settings-value">v1.0</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-item active" id="nav-search" onclick="switchPanel('search')">
+    <span class="nav-icon">🔍</span><span class="nav-label">Recherche</span>
+  </button>
+  <button class="nav-item" id="nav-history" onclick="switchPanel('history')">
+    <span class="nav-icon">📚</span><span class="nav-label">Historique</span>
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="switchPanel('settings')">
+    <span class="nav-icon">⚙️</span><span class="nav-label">Réglages</span>
+  </button>
+</nav>
+
+<script>
+var currentFiche = null;
+var currentPourvoi = '';
+
+// ── Storage ──────────────────────────────────────────────────────────────────
+function loadExamples() { try { return JSON.parse(localStorage.getItem('fa_examples')||'[]'); } catch(e) { return []; } }
+function saveExamples(ex) { localStorage.setItem('fa_examples', JSON.stringify(ex)); }
+function loadHistory() { try { return JSON.parse(localStorage.getItem('fa_history')||'[]'); } catch(e) { return []; } }
+function saveHistory(h) { localStorage.setItem('fa_history', JSON.stringify(h)); }
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+function switchPanel(name) {
+  ['search','history','settings'].forEach(function(p) {
+    document.getElementById('panel-'+p).classList.toggle('active', p===name);
+    document.getElementById('nav-'+p).classList.toggle('active', p===name);
+  });
+  if (name==='history') renderHistory();
+  if (name==='settings') updateCounts();
+}
+
+// ── Status ───────────────────────────────────────────────────────────────────
+function showStatus(msg, type) {
+  var el = document.getElementById('status');
+  if (!msg) { el.className='status'; el.innerHTML=''; return; }
+  var icon = type==='loading' ? '<span class="spin"></span>' : type==='error' ? '⚠️' : '✅';
+  el.className = 'status show '+type;
+  el.innerHTML = icon+' <span>'+msg+'</span>';
+}
+
+// ── Generate ─────────────────────────────────────────────────────────────────
+function pick(v) { document.getElementById('inp').value=v; generate(); }
+
+async function generate() {
+  var pourvoi = document.getElementById('inp').value.trim();
+  if (!pourvoi) return;
+  var btn = document.getElementById('goBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span> En cours…';
+  document.getElementById('fiche-area').innerHTML = '';
+  showStatus('Génération de la fiche en cours…', 'loading');
+  currentPourvoi = pourvoi;
+
+  try {
+    var examples = loadExamples();
+    var res = await fetch('/.netlify/functions/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pourvoi: pourvoi, examples: examples.slice(-5) })
+    });
+    if (!res.ok) {
+      var err = await res.json().catch(function(){return{error:'Erreur serveur'};});
+      throw new Error(err.error || 'Erreur serveur');
+    }
+    var data = await res.json();
+    currentFiche = data.fiche;
+    renderFiche(data.fiche, pourvoi, data.source);
+    showStatus('', '');
+  } catch(e) {
+    showStatus(e.message || 'Erreur lors de la génération.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Générer';
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderFiche(f, pourvoi, source) {
+  var isC = (f.type_arret||'').toLowerCase()==='cassation';
+  var bdg = isC
+    ? '<span class="badge cassation">↩ Cassation</span>'
+    : '<span class="badge rejet">✓ Rejet</span>';
+  var srcTag = '<span class="source-tag">'+(source==='judilibre'?'🏛 Judilibre':'🤖 Modèle IA')+'</span>';
+
+  var secs = [
+    {key:'presentation', label:"Identification de l'arrêt", icon:'📄', isQ:false},
+    {key:'faits',        label:'Faits',                     icon:'📋', isQ:false},
+    {key:'procedure',    label:'Procédure',                  icon:'⚖️', isQ:false},
+    {key:'these',        label:'Thèse du demandeur',         icon:'💬', isQ:false},
+    {key:'question',     label:'Question de droit',          icon:'❓', isQ:true},
+    {key:'solution',     label:'Solution',                   icon:'🏛️', isQ:false, isSol:true},
+  ];
+
+  var secsHtml = secs.map(function(s, i) {
+    var val = f[s.key] || '(à compléter)';
+    var inner = s.isQ
+      ? '<div class="sec-text question" id="c-'+s.key+'">'+esc(val)+'</div>'
+      : '<div class="sec-text" id="c-'+s.key+'">'+(s.isSol ? bdg+' ' : '')+esc(val)+'</div>';
+    return '<div class="section'+(i===0?' open':'')+'" id="sec-'+s.key+'">'
+      +'<div class="sec-header" onclick="toggleSec(\''+s.key+'\')">'
+        +'<span class="sec-icon">'+s.icon+'</span>'
+        +'<span class="sec-label">'+s.label+'</span>'
+        +'<span class="sec-chevron">▼</span>'
+      +'</div>'
+      +'<div class="sec-body">'
+        +'<div class="edit-row"><button class="edit-btn-small" onclick="startEdit(\''+s.key+'\',event)">✏️ Modifier</button></div>'
+        +inner
+        +'<textarea class="edit-area" id="e-'+s.key+'">'+esc(val)+'</textarea>'
+        +'<div class="save-row" id="sr-'+s.key+'">'
+          +'<button class="save-btn" onclick="saveEdit(\''+s.key+'\')">Enregistrer</button>'
+          +'<button class="cancel-btn" onclick="cancelEdit(\''+s.key+'\')">Annuler</button>'
+        +'</div>'
+      +'</div>'
+    +'</div>';
+  }).join('');
+
+  document.getElementById('fiche-area').innerHTML =
+    '<div class="fiche-card">'
+    +'<div class="fiche-head">'
+      +'<div class="fiche-head-left">'
+        +'<h2>Pourvoi n° '+esc(pourvoi)+' '+srcTag+'</h2>'
+        +bdg
+        +'<p style="margin-top:6px">'+esc((f.presentation||'').split('.')[0]+'.')+'</p>'
+      +'</div>'
+      +'<div class="fiche-head-right">'
+        +'<button class="icon-btn" onclick="copyFiche()" title="Copier">📋</button>'
+        +'<button class="icon-btn" onclick="shareFiche()" title="Partager">⬆️</button>'
+      +'</div>'
+    +'</div>'
+    +secsHtml
+    +'<div class="val-bar">'
+      +'<div class="val-label">Cette fiche vous convient ?</div>'
+      +'<div class="val-btns" id="val-btns">'
+        +'<button class="val-btn good" id="vb-good" onclick="validate(\'good\')">👍 Valider</button>'
+        +'<button class="val-btn bad" id="vb-bad" onclick="validate(\'bad\')">🔄 À refaire</button>'
+      +'</div>'
+    +'</div>'
+    +'</div>';
+}
+
+// ── Sections ─────────────────────────────────────────────────────────────────
+function toggleSec(key) { document.getElementById('sec-'+key).classList.toggle('open'); }
+
+function startEdit(key, e) {
+  e.stopPropagation();
+  var c=document.getElementById('c-'+key), ea=document.getElementById('e-'+key), sr=document.getElementById('sr-'+key);
+  if (currentFiche) ea.value = currentFiche[key]||'';
+  c.style.display='none'; ea.style.display='block'; sr.style.display='flex'; ea.focus();
+}
+function saveEdit(key) {
+  var c=document.getElementById('c-'+key), ea=document.getElementById('e-'+key), sr=document.getElementById('sr-'+key);
+  var val=ea.value.trim();
+  c.textContent=val; c.style.display=''; ea.style.display='none'; sr.style.display='none';
+  if (currentFiche) currentFiche[key]=val;
+}
+function cancelEdit(key) {
+  var c=document.getElementById('c-'+key), ea=document.getElementById('e-'+key), sr=document.getElementById('sr-'+key);
+  c.style.display=''; ea.style.display='none'; sr.style.display='none';
+}
+
+// ── Validation ────────────────────────────────────────────────────────────────
+function validate(type) {
+  document.getElementById('vb-good').classList.toggle('active', type==='good');
+  document.getElementById('vb-bad').classList.toggle('active', type==='bad');
+
+  if (type==='good' && currentFiche) {
+    var ex = loadExamples();
+    ex.push({ presentation:currentFiche.presentation, faits:currentFiche.faits, procedure:currentFiche.procedure, these:currentFiche.these, question:currentFiche.question, solution:currentFiche.solution, type_arret:currentFiche.type_arret, validatedAt:new Date().toISOString() });
+    if (ex.length>50) ex=ex.slice(-50);
+    saveExamples(ex);
+
+    var h = loadHistory();
+    h.unshift({ pourvoi:currentPourvoi, fiche:Object.assign({},currentFiche), date:new Date().toISOString(), validated:true });
+    if (h.length>30) h=h.slice(0,30);
+    saveHistory(h);
+
+    document.getElementById('val-btns').innerHTML = '<div class="val-success">✅ Fiche validée — mémorisée comme référence</div>';
+    showStatus('Fiche validée ! Les prochaines générations s\'en inspireront.', 'ok');
+    setTimeout(function(){showStatus('','');}, 3000);
+  } else if (type==='bad') {
+    showStatus('Modifiez les sections souhaitées, puis revalidez.', 'loading');
+    setTimeout(function(){showStatus('','');}, 2500);
+  }
+}
+
+// ── Partage / copie ───────────────────────────────────────────────────────────
+function ficheText() {
+  if (!currentFiche) return '';
+  return ['IDENTIFICATION\n'+(currentFiche.presentation||''), 'FAITS\n'+(currentFiche.faits||''), 'PROCÉDURE\n'+(currentFiche.procedure||''), 'THÈSE DU DEMANDEUR AU POURVOI\n'+(currentFiche.these||''), 'QUESTION DE DROIT\n'+(currentFiche.question||''), 'SOLUTION\n'+(currentFiche.solution||'')].join('\n\n') + '\n\nPourvoi n° '+currentPourvoi;
+}
+function copyFiche() {
+  navigator.clipboard && navigator.clipboard.writeText(ficheText()).then(function(){
+    showStatus('Fiche copiée !', 'ok'); setTimeout(function(){showStatus('','');}, 2000);
+  });
+}
+function shareFiche() {
+  navigator.share ? navigator.share({title:'Fiche arrêt n° '+currentPourvoi, text:ficheText()}) : copyFiche();
+}
+function shareApp() {
+  navigator.share ? navigator.share({title:'FicheArrêt', url:window.location.href}) : null;
+}
+
+// ── Historique ────────────────────────────────────────────────────────────────
+function renderHistory() {
+  var h = loadHistory();
+  var el = document.getElementById('hist-list');
+  if (!h.length) {
+    el.innerHTML='<div class="hist-empty"><div class="hist-empty-icon">📚</div><div>Aucune fiche validée pour l\'instant.</div></div>';
+    return;
+  }
+  el.innerHTML = h.map(function(item,i) {
+    var d = new Date(item.date);
+    var ds = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+    return '<div class="hist-item" onclick="loadFromHistory('+i+')">'
+      +'<div class="hist-item-top"><span class="hist-pourvoi">Pourvoi n° '+esc(item.pourvoi)+'</span><span class="hist-date">'+ds+'</span></div>'
+      +'<div class="hist-preview">'+esc(item.fiche.presentation||'')+'</div>'
+      +'</div>';
+  }).join('');
+}
+function loadFromHistory(i) {
+  var h=loadHistory();
+  if (!h[i]) return;
+  var item=h[i];
+  currentFiche=item.fiche; currentPourvoi=item.pourvoi;
+  document.getElementById('inp').value=item.pourvoi;
+  switchPanel('search');
+  renderFiche(item.fiche, item.pourvoi, 'model');
+  document.getElementById('fiche-area').scrollIntoView({behavior:'smooth'});
+}
+
+// ── Réglages ──────────────────────────────────────────────────────────────────
+function updateCounts() {
+  document.getElementById('examples-count').textContent = loadExamples().length;
+  document.getElementById('history-count').textContent = loadHistory().length;
+}
+function clearExamples() {
+  if (confirm('Effacer tous les exemples validés ?')) { localStorage.removeItem('fa_examples'); updateCounts(); }
+}
+function clearHistory() {
+  if (confirm('Effacer tout l\'historique ?')) { localStorage.removeItem('fa_history'); updateCounts(); renderHistory(); }
+}
+
+// ── Install banner iOS ────────────────────────────────────────────────────────
+if (/iphone|ipad|ipod/i.test(navigator.userAgent) && !window.navigator.standalone) {
+  document.getElementById('install-banner').classList.add('show');
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('inp').addEventListener('keydown', function(e){ if(e.key==='Enter') generate(); });
+updateCounts();
+</script>
+</body>
+</html>
